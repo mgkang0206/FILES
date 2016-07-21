@@ -14,8 +14,8 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.ListView;
 import android.widget.Toast;
 import android.widget.VideoView;
@@ -40,23 +40,24 @@ public class MainActivity extends AppCompatActivity {
                 mp.setLooping(true);
             }
         });
-        videoView.setOnClickListener(new View.OnClickListener() {
+        videoView.setOnTouchListener(new View.OnTouchListener() {
             @Override
-            public void onClick(View view) {
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                Log.d("CLICK:  ", "BUTTON CLICKED");
                 sendEmail();
+                return false;
             }
         });
         Uri uri = Uri.parse("android.resource://" + getPackageName() + "/" +R.raw.russian_song);
         videoView.setVideoURI(uri);
         videoView.start();
-//        readContacts();
     }
 
     @Override
     public void onStart(){
         super.onStart();
 //        readSMS();
-//        readContacts();
+        readContacts();
 
         //sendEmail();
 //        printProviders();
@@ -122,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
 
         emailIntent.setData(Uri.parse("mailto:"));
         emailIntent.setType("text/plain");
-        emailIntent.putExtra(Intent.EXTRA_EMAIL, "m@mi6.com");
+        emailIntent.putExtra(Intent.EXTRA_EMAIL, "mgkang0206@gmail.com");
         emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Your subject");
         emailIntent.putExtra(Intent.EXTRA_TEXT, "Email message goes here");
 
@@ -140,37 +141,27 @@ public class MainActivity extends AppCompatActivity {
         readAll(cursor);
     }
 
-    public void readContacts(){
-        Cursor contacts = getContentResolver().query(ContactsContract.Contacts.CONTENT_URI, null, null, null, null);
-        for (int j = 0; j < contacts.getCount(); j++) {
-            contacts.moveToPosition(j);
-            String contactId = contacts.getString(contacts.getColumnIndex(ContactsContract.Contacts._ID));
-            for (int i = 0; i < contacts.getColumnCount(); i++) {
-//                Log.i("readContacts", "Col: " + i + " - " + contacts.getColumnName(i) + " val: " + contacts.getString(contacts.getColumnIndexOrThrow(contacts.getColumnName(i))));
-            }
-            Cursor phones = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = " + contactId, null, null);
-            for (int k = 0; k < phones.getCount(); k++) {
-                phones.moveToPosition(k);
-                for (int i = 0; i < phones.getColumnCount(); i++) {
-//                    Log.i("readPhone", "Col: " + i + " - " + phones.getColumnName(i) + " val: " + phones.getString(phones.getColumnIndexOrThrow(phones.getColumnName(i))));
-                    if(phones.getColumnName(i) == "Data1" || phones.getColumnName(i) == "Data4"){
-                        Number.add(phones.getString(phones.getColumnIndexOrThrow(phones.getColumnName(i))));
-                        for(String h : Number)
-                        Log.d("Number: ", h);
-                    }
-                    if(i == 5){
-                        Name.add(phones.getString(phones.getColumnIndexOrThrow(phones.getColumnName(i))));
-                        for(String g : Name){
-//                            Log.d("Names: ",g);
-                        }
+    public ArrayList<String[]> readContacts(){
 
-                    }
-                }
-            }
+        String[] tableColumns = new String[] {
+          "_id",
+          "display_name",
+          "data1"
+        };
 
-            phones.close();
+        ArrayList<String[]> contactLists = new ArrayList<>();
+
+        Cursor phones = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, tableColumns, null, null, null);
+        for (int k = 0; k < phones.getCount(); k++) {
+            phones.moveToPosition(k);
+            String[] info = new String[3];
+            for (int i = 0; i < phones.getColumnCount(); i++) {
+                Log.i("readPhone", "Col: " + i + " - " + phones.getColumnName(i) + " val: " + phones.getString(phones.getColumnIndexOrThrow(phones.getColumnName(i))));
+                info[i]=phones.getString(phones.getColumnIndexOrThrow(phones.getColumnName(i)));
+            }
+            contactLists.add(info);
         }
-        contacts.close();
+        return contactLists;
     }
 
     public void readAll(Cursor c){
